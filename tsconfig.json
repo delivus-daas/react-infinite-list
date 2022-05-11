@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "jsx": "react",
+    "sourceMap": true,
+    "outDir": "dist",
+    "strict": true,
+    "lib": [ "es2015", "dom" ],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true, //새로 추가
+    "declarationDir": "types", //새로 추가
+    "emitDeclarationOnly": true, //새로 추가
+    "forceConsistentCasingInFileNames": true
+  }
+}
