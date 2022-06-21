@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
 import PullToRefresh from "../pullRefresh/PullToRefresh";
 import { InfiniteListProps, GetListResponse } from "./InfiniteList.types";
@@ -18,7 +18,7 @@ const InfiniteList = ({
   loadMoreRef,
   onRefresh,
 }: InfiniteListProps) => {
-  const [page, setPage] = useState(0);
+  const pageRef = useRef(1);
   const [data, setData] = useState<GetListResponse>();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -27,14 +27,14 @@ const InfiniteList = ({
   }
 
   function handleLoadMore() {
-    console.log("handleLoadMore");
-    if (!page || refreshing) {
+    console.log("handleLoadMore ", pageRef.current, refreshing);
+    if (pageRef.current == 1 || refreshing) {
       return;
     } else {
       if (Array.isArray(params)) {
-        params.push({ page });
+        params.push({ page: pageRef.current });
       } else {
-        params = { page, ...params };
+        params = { page: pageRef.current, ...params };
       }
       setRefreshing(true);
       http
@@ -49,7 +49,7 @@ const InfiniteList = ({
 
   const onResponseSuccess = useCallback((data: GetListResponse) => {
     setRefreshing(false);
-    setPage(data?.next ? 2 : 0);
+    pageRef.current = data?.next ? 2 : 1;
     setData(data);
     if (onGetCount) {
       onGetCount(data.count, data.results);
@@ -59,7 +59,7 @@ const InfiniteList = ({
   const onResponseSuccessMore = useCallback(
     (res: GetListResponse) => {
       setRefreshing(false);
-      setPage(res?.next ? page + 1 : 0);
+      pageRef.current = res?.next ? pageRef.current + 1 : 1;
       const totalResult = data?.results
         ? data?.results.concat(res.results)
         : res.results;
@@ -72,12 +72,12 @@ const InfiniteList = ({
         onGetCount(res.count, totalResult);
       }
     },
-    [page, data]
+    [data]
   );
 
   const onResponseFailed = useCallback((err: AxiosError) => {
     setRefreshing(false);
-    setPage(0);
+    pageRef.current = 1;
     onApiFailed(err);
   }, []);
 
@@ -87,7 +87,7 @@ const InfiniteList = ({
         if (reject) reject();
         return;
       }
-      setPage(0);
+      pageRef.current = 1;
       setRefreshing(true);
       if (onRefresh) {
         onRefresh();
